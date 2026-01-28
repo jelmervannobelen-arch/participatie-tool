@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+enum ZoneType {
+  PARKING
+  GREEN
+  OTHER
+}
+
+enum RespondentType {
+  RESIDENT
+  BUSINESS
+  VISITOR
+  UNKNOWN
+}
+
+enum AgeGroup {
+  UNDER_18
+  AGE_18_34
+  AGE_35_54
+  AGE_55_74
+  AGE_75_PLUS
+  UNKNOWN
+}
+
+model Project {
+  id                      String          @id @default(cuid())
+  name                    String
+  areaName                String
+  createdAt               DateTime        @default(now())
+  baselineParkingPressure Float
+  baselineParkingSpots    Int
+  layoutJson              String
+  notes                   String?
+  intersections           Intersection[]
+  zones                   Zone[]
+  designs                 ResidentDesign[]
+  costConfigs             CostConfig[]
+}
+
+model Intersection {
+  id        String   @id @default(cuid())
+  projectId String
+  x         Float
+  y         Float
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model Zone {
+  id           String   @id @default(cuid())
+  projectId    String
+  type         ZoneType
+  geometryJson String
+  capacity     Int?
+  project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model ResidentDesign {
+  id             String         @id @default(cuid())
+  projectId      String
+  createdAt      DateTime       @default(now())
+  respondentType RespondentType
+  postalCode4    String?
+  ageGroup       AgeGroup
+  slidersJson    String
+  metricsJson    String
+  clientHash     String
+  project        Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model CostConfig {
+  id       String  @id @default(cuid())
+  projectId String
+  key      String
+  unitCost Float
+  unitOpex Float
+  project  Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
